@@ -97,7 +97,8 @@ Current read-only tools include:
 - List issues
 - List pull requests
 - List GitHub Actions workflow runs
-
+- Get repository file contents
+  
 The assistant does not perform GitHub write operations.
 
 ## AI Provider Layer
