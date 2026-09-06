@@ -97,3 +97,54 @@ export async function getWorkflowRuns(repo: string) {
     },
   );
 }
+
+/**
+ * Retrieve the contents of a specific file from a GitHub repository.
+ *
+ * An optional ref can be provided to read the file from a specific
+ * branch, tag, or commit.
+ */
+export async function getRepositoryFile(
+  repo: string,
+  path: string,
+  ref?: string,
+) {
+  const response = await octokit.rest.repos.getContent({
+    owner: githubOwner,
+    repo,
+    path,
+    ...(ref ? { ref } : {}),
+  });
+
+  if (Array.isArray(response.data)) {
+    throw new Error(
+      "The requested path is a directory, not a file.",
+    );
+  }
+
+  if (response.data.type !== "file") {
+    throw new Error(
+      "The requested path is not a regular file.",
+    );
+  }
+
+  if (!response.data.content) {
+    throw new Error(
+      "GitHub did not return file content.",
+    );
+  }
+
+  const content = Buffer.from(
+    response.data.content,
+    "base64",
+  ).toString("utf-8");
+
+  return {
+    name: response.data.name,
+    path: response.data.path,
+    sha: response.data.sha,
+    size: response.data.size,
+    url: response.data.html_url,
+    content,
+  };
+}

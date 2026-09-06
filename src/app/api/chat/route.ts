@@ -16,6 +16,7 @@ import {
   getIssues,
   getPullRequests,
   getWorkflowRuns,
+  getRepositoryFile,
 } from "@/lib/github";
 
 interface ChatMessage {
@@ -163,6 +164,31 @@ const githubTools: AITool[] = [
       required: ["repo"],
     },
   },
+  {
+    name: "getRepositoryFile",
+    description:
+      "Retrieve the contents of a specific file from a GitHub repository. Use this when the user asks to read, explain, summarize, or analyze a known repository file.",
+    parameters: {
+      type: "object",
+      properties: {
+        repo: {
+          type: "string",
+          description: "The repository name.",
+        },
+        path: {
+          type: "string",
+          description:
+            "The file path inside the repository, for example src/lib/github.ts.",
+        },
+        ref: {
+          type: "string",
+          description:
+            "Optional branch, tag, or commit SHA to read the file from.",
+        },
+      },
+      required: ["repo", "path"],
+    },
+  },
 ];
 
 export async function POST(request: Request) {
@@ -296,6 +322,16 @@ export async function POST(request: Request) {
             ? toolCall.arguments.repo.trim()
             : null;
 
+        const filePath =
+          typeof toolCall.arguments.path === "string"
+            ? toolCall.arguments.path.trim()
+            : null;
+
+        const fileRef =
+          typeof toolCall.arguments.ref === "string"
+            ? toolCall.arguments.ref.trim()
+            : null;
+
         const targetRepository =
           repositoryArgument || normalizedRepository;
 
@@ -395,6 +431,34 @@ export async function POST(request: Request) {
 
               result =
                 await getWorkflowRuns(targetRepository);
+              break;
+            }
+
+            case "getRepositoryFile": {
+              if (!targetRepository) {
+                throw new Error(
+                  "A repository name is required for this operation.",
+                );
+              }
+
+              if (!isValidRepositoryName(targetRepository)) {
+                throw new Error(
+                  "Invalid repository name.",
+                );
+              }
+
+              if (!filePath) {
+                throw new Error(
+                  "A file path is required for this operation.",
+                );
+              }
+
+              result =
+                await getRepositoryFile(
+                  targetRepository,
+                  filePath,
+                  fileRef || undefined,
+                );
               break;
             }
 
