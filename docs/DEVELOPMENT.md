@@ -1,205 +1,385 @@
-# DCloud Development Guide
+DCloud Development Guide
 
-This document describes the development workflow used to build, test, document, and integrate DCloud changes.
+This document describes the development workflow, branching strategy, validation process, documentation practices, and release process used for DCloud.
 
-## Development Environment
+DCloud is developed incrementally. Changes should be kept focused, reviewed carefully, validated locally, and integrated through the development branch before being released to "main".
 
-DCloud is developed locally using:
+---
 
-- Termux for the development environment and Git commands.
-- Acode for editing project files.
-- Node.js and npm for project dependencies and scripts.
-- Git and GitHub for version control and collaboration.
+Development Environment
 
-## Branching Strategy
+DCloud is currently developed using:
 
-DCloud uses three levels of branches:
+- Next.js
+- TypeScript
+- Tailwind CSS
+- Octokit
+- OpenAI
+- Google Gemini
+- GitHub API
+- npm
+- Git
 
-```text
+The primary local development environment is a Termux-based workflow.
+
+Source files can be edited locally using tools such as Acode, while Git operations are performed from the terminal.
+
+---
+
+Branching Strategy
+
+DCloud uses a simple development and release branch structure:
+
 main
   ↑
-body
+devs
   ↑
 feat/*
-```
 
-### `main`
+"main"
 
-`main` is the stable release branch.
+"main" is the stable release branch.
 
-Changes are promoted to `main` from `body` after the work has been reviewed, validated, and approved for release.
+Changes should reach "main" only after they have been developed, reviewed, validated, and integrated through "devs".
 
-### `body`
+"devs"
 
-`body` is the development and integration branch.
+"devs" is the development and integration branch.
 
-Completed feature branches are merged into `body` before a release is considered.
+Normal feature work is developed from "devs" and merged back into "devs" through pull requests.
 
-### Feature Branches
+Feature Branches
 
-New work is developed on feature branches created from `body`.
+Feature branches are created from "devs".
 
 Examples:
 
-```text
-feat/docs
-feat/new-feature
-feat/provider-update
-```
+feat/dashboard-improvements
+feat/chat-provider-selection
+feat/repository-context
 
-Feature branches should contain one focused piece of work whenever practical.
+Feature branches should normally represent one focused feature, fix, or architectural change.
 
-## Development Workflow
+---
 
-The general DCloud workflow is:
+Development Workflow
 
-```text
-Create feature branch
-        ↓
+The normal DCloud development workflow is:
+
+Define feature
+      ↓
+Review architecture
+      ↓
+Create feature branch from devs
+      ↓
 Build feature
-        ↓
+      ↓
 Test and validate
-        ↓
-Document completed work
-        ↓
+      ↓
+Review changed files
+      ↓
+Update documentation when necessary
+      ↓
 Create Pull Request
-        ↓
-Merge into body
-        ↓
+      ↓
+Merge into devs
+      ↓
 Validate integrated project
-        ↓
-Release body to main
-```
+      ↓
+Create Pull Request from devs to main
+      ↓
+Release
 
-The documentation should describe what has actually been built rather than documenting unimplemented functionality as completed.
+The goal is to keep each change understandable and independently reviewable.
 
-## Local Development
+---
 
-Install project dependencies:
+Starting a New Feature
 
-```bash
+Before beginning a new feature:
+
+1. Make sure the local repository is up to date.
+2. Confirm that you are working from "devs".
+3. Review the existing architecture.
+4. Determine which files and systems the feature will affect.
+5. Create a focused feature branch.
+
+Example:
+
+git switch devs
+git pull origin devs
+git switch -c feat/example-feature
+
+Do not begin substantial feature work directly on "main".
+
+---
+
+Building Features
+
+During implementation:
+
+- Keep changes focused on the intended feature.
+- Avoid unrelated refactoring.
+- Follow the existing project structure.
+- Keep server-side credentials on the server.
+- Avoid hardcoding DCloud to a single repository when the feature should work at the GitHub account level.
+- Keep provider-specific AI logic inside the provider layer.
+- Preserve the current read-only GitHub capability boundary unless write functionality has been deliberately designed and approved.
+- Review generated files before including them in a commit.
+
+---
+
+Local Development
+
+Install dependencies:
+
 npm install
-```
 
 Start the development server:
 
-```bash
 npm run dev
-```
 
-The application can then be tested locally through the development server.
+The application can then be tested locally in a browser using the local development address provided by Next.js.
 
-## Validation
+---
 
-Before integrating a feature, run the project validation commands:
+Validation
 
-```bash
+Before creating a pull request, run the project's validation commands.
+
+Lint
+
 npm run lint
-```
 
-and:
+Production Build
 
-```bash
 npm run build -- --webpack
-```
 
 Both commands should complete successfully before a feature is considered ready for integration.
 
-Feature-specific functionality should also be tested manually in the local development environment when appropriate.
+If a generated file changes during development or a build, review the change before deciding whether it belongs in the commit.
 
-## Git Workflow
+---
 
-Check the current branch and working tree:
+Reviewing Changes Before Commit
 
-```bash
+Before staging changes, inspect the repository state:
+
 git status
-```
 
-Review changes before staging:
+Review the actual changes:
 
-```bash
 git diff
-```
 
-Stage intended changes:
+If the changes are correct, stage only the files that belong to the feature.
 
-```bash
-git add <file>
-```
+For example:
 
-Review staged changes:
+git add path/to/file
 
-```bash
+Then review the staged changes:
+
 git diff --cached
-```
 
-Create a commit describing the completed change:
+This step is important because it provides a final opportunity to catch:
 
-```bash
-git commit -m "type: description"
-```
+- Unrelated changes
+- Accidental files
+- Generated files
+- Debug code
+- Temporary files
+- Incorrect documentation
+- Secrets or credentials
 
-Push the feature branch:
+---
 
-```bash
-git push -u origin <branch-name>
-```
+Git Commit Workflow
 
-Pull Requests should target `body` for normal feature development.
+After reviewing the staged changes, create a focused commit:
 
-## Documentation Workflow
+git commit -m "describe the change"
 
-Documentation is maintained alongside development.
+Then push the feature branch:
 
-The preferred workflow is:
+git push -u origin <feature-branch>
 
-```text
-Build feature
-     ↓
-Understand and validate feature
-     ↓
-Document what was actually built
-     ↓
-Merge feature into body
-```
+For an existing tracking branch, the shorter form can be used:
 
-Project-level documentation is updated as the architecture, development process, or project direction changes.
+git push
 
-The main documentation files are:
+Commit messages should clearly describe the purpose of the change.
 
-```text
-README.md
-docs/
-├── ROADMAP.md
-├── ARCHITECTURE.md
-└── DEVELOPMENT.md
-```
+---
 
-## Release Workflow
+Pull Requests
 
-When the work in `body` is considered ready for release:
+Normal feature pull requests should target:
 
-```text
-body
+devs
+
+The general flow is:
+
+feat/*
+   ↓
+Pull Request
+   ↓
+devs
+
+After integration into "devs", the combined project should be validated before preparing a release.
+
+---
+
+Release Workflow
+
+The release flow is:
+
+devs
   ↓
-Review and validate
+Review integrated changes
+  ↓
+Run validation
+  ↓
+Test the integrated project
   ↓
 Pull Request
   ↓
 main
-```
 
-The `main` branch represents the released state of DCloud.
+"main" should represent a stable version of DCloud rather than an active feature-development branch.
 
-## Change Management
+---
 
-Before committing or merging changes:
+Documentation
 
-- Review the files that changed.
-- Confirm that unrelated files were not modified.
-- Run linting and the production build.
-- Test the affected functionality locally.
-- Update documentation when the change affects documented behavior or architecture.
-- Keep commits and Pull Requests focused on the work being performed.
+DCloud currently uses the following primary documentation files:
 
-This workflow is intended to keep DCloud development incremental, understandable, and easy to maintain.
+"README.md"
+
+The README provides a concise overview of DCloud, its current capabilities, technology stack, development basics, and links to detailed documentation.
+
+"docs/ROADMAP.md"
+
+The roadmap describes:
+
+- Completed development phases
+- Current capabilities
+- Current development focus
+- Future development directions
+- Capability boundaries
+
+"docs/ARCHITECTURE.md"
+
+The architecture document describes:
+
+- Frontend structure
+- Backend API structure
+- GitHub integration
+- AI provider architecture
+- Repository context
+- Request flow
+- Security and credential boundaries
+- Current read-only architecture
+
+"docs/DEVELOPMENT.md"
+
+This document describes:
+
+- Branching
+- Development workflow
+- Local development
+- Validation
+- Git workflow
+- Pull requests
+- Releases
+- Documentation practices
+
+Documentation should be updated when a significant architectural, workflow, or capability change is introduced.
+
+---
+
+Development Principles
+
+DCloud development follows several core principles.
+
+Incremental Development
+
+Build and validate DCloud in manageable stages rather than introducing large unrelated changes at once.
+
+Architecture Before Expansion
+
+Before adding a major capability, review how it fits into the existing architecture.
+
+Account-Level Design
+
+DCloud should operate at the GitHub account level where appropriate.
+
+The dashboard should not be permanently hardcoded around the "dcloud" repository.
+
+Repository-specific functionality should use the currently selected repository as context.
+
+Server-Side Credentials
+
+GitHub and AI provider credentials must remain on the server.
+
+Sensitive environment variables should not be exposed to the browser.
+
+Read-Only Until Deliberately Expanded
+
+The current GitHub integration is intentionally read-only.
+
+Future write capabilities should be introduced only after their architecture, permissions, validation, and safety requirements have been deliberately designed.
+
+Provider Separation
+
+AI provider-specific implementation should remain separated through the provider architecture.
+
+This allows DCloud to support multiple AI providers without coupling the entire chat system to one provider.
+
+Small, Reviewable Changes
+
+Prefer focused changes that can be understood, tested, reviewed, and reverted independently.
+
+Documentation Synchronization
+
+Documentation should describe the actual state of the project.
+
+Do not document planned functionality as though it is already implemented.
+
+---
+
+Change Management Checklist
+
+Before merging a feature, review the following:
+
+- [ ] The change is on the correct feature branch.
+- [ ] The feature was developed from "devs".
+- [ ] Only intended files were modified.
+- [ ] No secrets or credentials were added.
+- [ ] No unrelated generated files were committed.
+- [ ] "npm run lint" passes.
+- [ ] "npm run build -- --webpack" passes.
+- [ ] The feature was manually tested where appropriate.
+- [ ] Documentation was updated if necessary.
+- [ ] The staged diff was reviewed.
+- [ ] The commit represents one focused change.
+- [ ] The pull request targets "devs".
+
+---
+
+Current Development Model
+
+The current DCloud development model can be summarized as:
+
+main
+  │
+  │  stable releases
+  │
+devs
+  │
+  │  integration
+  │
+feat/*
+  │
+  └── focused feature development
+
+This structure keeps active development separated from stable releases while allowing features to be developed and reviewed independently.
