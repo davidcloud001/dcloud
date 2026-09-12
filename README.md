@@ -49,13 +49,13 @@ Validate the project:
 npm run lint
 npm run build -- --webpack
 
-Environment configuration is provided through ".env.example".
+Environment configuration is provided through `.env.example`.
 
 Documentation
 
-- "Roadmap" (docs/ROADMAP.md) — project progress, capabilities, and development phases
-- "Architecture" (docs/ARCHITECTURE.md) — application architecture and component relationships
-- "Development Guide" (docs/DEVELOPMENT.md) — development, testing, Git, documentation, and release workflow
+- [Roadmap](docs/ROADMAP.md) — project progress, capabilities, and development phases
+- [Architecture](docs/ARCHITECTURE.md) — application architecture and component relationships
+- [Development Guide](docs/DEVELOPMENT.md) — development, testing, Git, documentation, and release workflow
 
 Branching
 
